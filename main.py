@@ -13,9 +13,12 @@ from data.scripts.tile import Tile
 
 class Game:
     def __init__(self, resolution, max_fps, scale):
-        self.resolution = resolution
-        self.display = pygame.display.set_mode(resolution, pygame.RESIZABLE)
-        self.screen = pygame.Surface(resolution)
+
+        pygame.init()
+        info = pygame.display.Info()
+        self.display = pygame.display.set_mode((info.current_w, info.current_h), pygame.RESIZABLE)
+
+        self.screen = pygame.Surface((info.current_w, info.current_h))
         self.max_fps = max_fps
         self.clock = pygame.Clock()
         self.scale = scale
@@ -167,7 +170,7 @@ class Game:
         )
         self.record_vertical_offset = 0
         self.record_velocity = 0
-        self.records = []
+        self.record = 0
 
         self.music = False
 
@@ -186,10 +189,11 @@ class Game:
 
         self.survived_time = 0
 
-        self.click_to_continue = self.small_ui_font.render("click anywhere to continue", True, (255, 246, 211))
-
         self.explanation = Explanation(self)
 
+    @property
+    def resolution(self) -> tuple[int, int]:
+        return pygame.display.get_window_size()
 
     def toggle_music(self):
         if self.playing_music:
@@ -241,7 +245,7 @@ class Game:
     def load_record(self):
         with open("data/record.json") as file:
             data = json.load(file)
-            self.records = data.get("records")
+            self.record = data.get("records")
 
     def render_background(self) -> None:
         for i, layer in enumerate(self.backgrounds):
@@ -320,34 +324,21 @@ class Game:
             (self.resolution[1] - self.controls_screen.get_height()) // 2
         ))
 
-        self.screen.blit(self.click_to_continue, ((self.resolution[0] - 600) // 2, 1030))
+        click_to_continue = self.small_ui_font.render("click anywhere to continue", True, (249, 168, 117))
+        self.screen.blit(click_to_continue, ((self.resolution[0] - 600) // 2, 1030))
 
     def tick_record(self):
         self.render_background()
 
-        self.screen.blit(
-            self.record,
-            ((self.resolution[0] - self.record.get_width()) // 2,
-             (self.resolution[1] - self.record.get_height()) // 2)
-        )
+        record_time = self.small_ui_font.render(f"Personal best: 69s", True, (255, 246, 211))
+        self.screen.blit(record_time, (550, 455 - self.death_screen_vertical_offset))
 
-        self.screen.blit(self.click_to_continue, ((self.resolution[0] - 600) // 2, 1030))
+        click_to_continue = self.small_ui_font.render("click anywhere to continue", True, (249, 168, 117))
+        self.screen.blit(click_to_continue, ((self.resolution[0] - 600) // 2, self.resolution[1] - 50))
 
         # current_time = self.ui_font.render(f"{self.time}s", True, (255, 246, 211)) self.screen.blit( current_time,
         # ((self.resolution[0] - self.death_screen.get_width()) // 2, (self.resolution[1] -
         # self.death_screen.get_height()) // 2) )
-
-        if self.records:
-            for i in range(0, 3):
-                text = self.records[i]
-                if not text:
-                    text = "-"
-                elif text == "0s":
-                    text = "-"
-                else:
-                    text = str(text) + "s"
-                line = self.ui_font.render(text, True, (255, 246, 211))
-                self.screen.blit(line, (875, 405 + i * 81))
 
     def tick_mainscreen(self):
         self.render_background()
@@ -470,31 +461,17 @@ class Game:
 
         self.screen.blit(
             self.death_screen,
-            ((self.resolution[0] - self.death_screen.get_width()) // 2 - 200,
+            ((self.resolution[0] - self.death_screen.get_width()) // 2,
              (self.resolution[1] - self.death_screen.get_height()) // 2 - self.death_screen_vertical_offset)
         )
-        self.screen.blit(
-            self.record,
-            ((self.resolution[0] - self.record.get_width()) // 2 + 580,
-             (self.resolution[1] - self.record.get_height()) // 2 - self.record_vertical_offset)
-        )
 
-        if self.records:
-            for i in range(0, 3):
-                text = self.records[i]
-                if not text:
-                    text = "-"
-                elif text == "0s":
-                    text = "-"
-                else:
-                    text = str(text) + "s"
-                line = self.ui_font.render(text, True, (255, 246, 211))
-                self.screen.blit(line, (1450, 405 + i * 81 - self.record_vertical_offset))
+        survived_time = self.small_ui_font.render(f"Survived for {self.survived_time} seconds", True, (255, 246, 211))
+        self.screen.blit(survived_time, (510, 520 - self.death_screen_vertical_offset))
+        record_time = self.small_ui_font.render(f"Personal best: 69s", True, (255, 246, 211))
+        self.screen.blit(record_time, (550, 635 - self.death_screen_vertical_offset))
 
-        survived_time = self.small_ui_font.render(f"You survived for {self.survived_time} seconds", True, (255, 246, 211))
-        self.screen.blit(survived_time, (470, 610 - self.death_screen_vertical_offset))
-
-        self.screen.blit(self.click_to_continue, ((self.resolution[0] - 600) // 2, 1030))
+        click_to_continue = self.small_ui_font.render("click anywhere to continue", True, (249, 168, 117))
+        self.screen.blit(click_to_continue, ((self.resolution[0] - 600) // 2, self.resolution[1] - 50))
 
     def quit(self) -> None:
         pygame.quit()
@@ -654,7 +631,6 @@ class Game:
             self.display = pygame.display.set_mode((event.w, event.h),
                                               pygame.RESIZABLE)
             self.screen = pygame.Surface((event.w, event.h))
-            self.resolution = (event.w, event.h)
 
     def handle_key_input(self):
         pass

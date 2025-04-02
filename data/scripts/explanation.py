@@ -13,6 +13,10 @@ class Explanation:
             pygame.image.load("data/assets/tiles/crush_top.png").convert_alpha(),
             (32 * self.scale, 42 * self.scale)
         )
+        self.crush_bottom = pygame.transform.scale(
+            pygame.image.load("data/assets/tiles/crush.png").convert_alpha(),
+            (32 * self.scale, 64 * self.scale)
+        )
         self.crush_offset = -800
 
         self.default = pygame.transform.scale(
@@ -26,7 +30,6 @@ class Explanation:
     def load_slides(self) -> list:
         slides = []
 
-        print(self.game.mainscreen_ui_scale)
         for i in range(1, 6 + 1):
             slides.append(
                 pygame.transform.scale(
@@ -46,20 +49,24 @@ class Explanation:
         self.game.render_background()
         self.game.screen.blit(self.slides[self.slide_index], pos)
 
-        if self.slide_index == 3:
-            self.game.screen.blit(self.crush_top, (636, 150 + 177 + self.crush_offset))
+        if self.slide_index == 3 or self.slide_index == 4:
+            self.game.screen.blit(self.crush_bottom, (pos[0] + 398, pos[1] + 290))
+            # self.game.screen.blit(self.crush_bottom, (446, 138 + 177))
+            self.game.screen.blit(self.crush_top, (pos[0] + 398, pos[0] + 176 + self.crush_offset))
             if self.crush_offset < 0:
                 self.crush_offset += 20
             else:
                 self.crush_offset = 0
         if self.slide_index == 4:
-            self.game.screen.blit(self.default, (1035, 240 + 177 + self.default_offset))
+            self.game.screen.blit(self.default, (850, 138 + 177 - 90 + self.default_offset))
             self.default_offset += 15
 
 
     def handle_new_slide(self):
-        self.crush_offset = -800
-        self.default_offset = 50
+        if self.slide_index == 3:
+            self.crush_offset = -800
+        if self.slide_index == 4:
+            self.default_offset = 50
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
