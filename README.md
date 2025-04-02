@@ -4,6 +4,8 @@ Simple game made in pygame. Your goal is to survive as long as possible and avoi
 
 The base game was made in a week, so don't expect anything spectacular. There-fore code is really messy.
 
+Tested on python 3.12
+
 ## Controls
 - You can move using WSAD or arrows
 - Your main goal is to avoid traps.
