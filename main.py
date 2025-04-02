@@ -164,12 +164,7 @@ class Game:
         self.death_screen_transition = False
         self.death_screen_vertical_offset = 0
         self.death_screen_velocity = 0
-        self.record = pygame.transform.scale(
-            pygame.image.load("data/assets/ui/record.png").convert_alpha(),
-            (47 * self.mainscreen_ui_scale, 58 * self.mainscreen_ui_scale)
-        )
-        self.record_vertical_offset = 0
-        self.record_velocity = 0
+
         self.record = 0
 
         self.music = False
@@ -245,7 +240,7 @@ class Game:
     def load_record(self):
         with open("data/record.json") as file:
             data = json.load(file)
-            self.record = data.get("records")
+            self.record = data.get("record")
 
     def render_background(self) -> None:
         for i, layer in enumerate(self.backgrounds):
@@ -270,9 +265,10 @@ class Game:
         self.map.stop_tile_render()
         self.death_screen_transition = True
         self.death_screen_vertical_offset = 750
-        self.record_vertical_offset = 750
+        print("time:", self.time, "record:", self.record)
+        if self.time > self.record:
+            self.record = self.time
         self.save_record()
-        self.load_record()
         self.menu = 2
 
     def switch_to_death_screen(self):
@@ -330,7 +326,7 @@ class Game:
     def tick_record(self):
         self.render_background()
 
-        record_time = self.small_ui_font.render(f"Personal best: 69s", True, (255, 246, 211))
+        record_time = self.small_ui_font.render(f"Personal best: {self.record}", True, (255, 246, 211))
         self.screen.blit(record_time, (550, 455 - self.death_screen_vertical_offset))
 
         click_to_continue = self.small_ui_font.render("click anywhere to continue", True, (249, 168, 117))
@@ -419,23 +415,8 @@ class Game:
         self.draw_text()
 
     def save_record(self):
-        with open("data/record.json") as file:
-            json_data = json.load(file)
-            data = json_data.get("records")
-
-        if not data:
-            data = [0, 0, 0]
-
-        data.append(self.survived_time)
-        data.sort(reverse=True)
-        new_data = data[:3]
-
-        json_data["records"] = new_data
-
         with open("data/record.json", "w") as file:
-            json.dump(json_data, file, indent=4)
-
-        self.records = new_data
+            json.dump({"record": self.record}, file, indent=4)
 
     def tick_deathscreen(self):
         self.render_background()
@@ -450,15 +431,6 @@ class Game:
                 self.death_screen_vertical_offset -= self.death_screen_velocity
                 self.death_screen_velocity += 1
 
-            if self.record_vertical_offset - self.record_velocity < 0:
-                self.record_vertical_offset = 0
-                self.record_velocity = 0
-                self.death_screen_transition = False
-                self.screen_shake = 10
-            else:
-                self.record_vertical_offset -= self.record_velocity
-                self.record_velocity += 1
-
         self.screen.blit(
             self.death_screen,
             ((self.resolution[0] - self.death_screen.get_width()) // 2,
@@ -467,7 +439,7 @@ class Game:
 
         survived_time = self.small_ui_font.render(f"Survived for {self.survived_time} seconds", True, (255, 246, 211))
         self.screen.blit(survived_time, (510, 520 - self.death_screen_vertical_offset))
-        record_time = self.small_ui_font.render(f"Personal best: 69s", True, (255, 246, 211))
+        record_time = self.small_ui_font.render(f"Personal best: {self.record}s", True, (255, 246, 211))
         self.screen.blit(record_time, (550, 635 - self.death_screen_vertical_offset))
 
         click_to_continue = self.small_ui_font.render("click anywhere to continue", True, (249, 168, 117))
