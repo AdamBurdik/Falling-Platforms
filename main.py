@@ -584,7 +584,7 @@ class Game:
                 self.player.god_mode = True if not self.player.god_mode else False
             # elif event.key == pygame.K_F1:
             #     self.toggle_music()
-            elif event.key == pygame.K_F1:
+            elif event.key == pygame.K_p:
                 if self.menu != 5:
                     self.menu = 5
                 else:
